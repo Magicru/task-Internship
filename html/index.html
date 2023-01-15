@@ -1,0 +1,149 @@
+<html>
+<head>
+  <meta charSet="UTF-8">
+  <meta name="viewport"
+        content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+  <title>ITMO Practice</title>
+
+  <script src="https://cdn.amcharts.com/lib/5/index.js"></script>
+  <script src="https://cdn.amcharts.com/lib/5/hierarchy.js"></script>
+  <script src="https://cdn.amcharts.com/lib/5/themes/Animated.js"></script>
+
+  <script>
+    am5.ready(() => {
+      fetch('https://server2-71v4.onrender.com/json/mind-map')
+        .then(function (response) {
+          return response.json();
+        })
+        .then(function (data) {
+          const root = am5.Root.new("chartdiv");
+          root._logo.dispose();
+
+          root.setThemes([
+            am5themes_Animated.new(root)
+          ]);
+
+          const container = root.container.children.push(am5.Container.new(root, {
+            width: am5.percent(100),
+            height: am5.percent(100),
+            layout: root.verticalLayout
+          }));
+
+          const series = container.children.push(am5hierarchy.ForceDirected.new(root, {
+            singleBranchOnly: false,
+            downDepth: 1,
+            initialDepth: 2,
+            valueField: "value",
+            categoryField: "name",
+            childDataField: "children",
+            centerStrength: 0.5
+          }));
+
+          series.data.setAll([data]);
+          series.set("selectedDataItem", series.dataItems[0]);
+
+          series.appear(1000, 100);
+        })
+        .catch(function (err) {
+          console.log('error: ' + err);
+        });
+    });
+  </script>
+
+  <script>
+    fetch('https://server2-71v4.onrender.com/json/glossary')
+      .then(function (response) {
+        return response.json();
+      })
+      .then(function (data) {
+        appendData(data);
+      })
+      .catch(function (err) {
+        console.log('error: ' + err);
+      });
+
+    function appendData(data) {
+      const glossaryContainer = document.getElementById("glossary");
+      Object.keys(data).forEach(key => {
+        let div = document.createElement("div");
+        div.classList.add("term");
+        div.innerHTML = `<div class="title">${key}</div><div>${data[key]}</div>`;
+        glossaryContainer.appendChild(div)
+      });
+    }
+  </script>
+
+  <style>
+    #chartdiv {
+      padding-left: 20px;
+      display: inline-block;
+      width: 50%;
+      height: 100%;
+      max-width: 100%;
+      transition: 3s ease-in-out padding-left;
+    }
+
+    #chartdiv:hover {
+      padding-left: 0;
+    }
+
+    #glossary {
+      display: inline-block;
+      width: 50%;
+      height: 100%;
+      max-width: 100%;
+      overflow: auto;
+    }
+
+    #container {
+      display: flex;
+      width: 100%;
+      height: 100%;
+    }
+
+    .title {
+      font-size: 20px;
+      margin-bottom: 10px;
+    }
+
+    @keyframes ani {
+      0% {opacity: 0;}
+      100% {opacity: 1;}
+    }
+
+    .term {
+      font-family: Seravek;
+      color: white;
+      margin-top: 20px;
+      margin-right: 20px;
+      height: 160px;
+      background: #8a3ada;
+      padding: 20px;
+      border-radius: 30px;
+      animation: ani 0.5s forwards;
+    }
+
+    .term:nth-child(4n + 1) {background: #68b4dc;}
+    .term:nth-child(4n - 1) {background: #6874dc;}
+    .term:nth-child(4n - 2) {background: #e064cc;}
+    .term:nth-child(4n) {background: #a864dc;}
+
+    .term:last-child {
+      margin-bottom: 20px;
+    }
+
+    * {
+      margin: 0;
+    }
+  </style>
+</head>
+<body>
+<div id="container">
+  <div id="chartdiv"></div>
+  <div id="glossary">
+  </div>
+</div>
+</body>
+</html>
